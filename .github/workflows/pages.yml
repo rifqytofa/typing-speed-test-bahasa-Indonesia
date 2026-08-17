@@ -4,7 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Add Google Search Console verification tag
+      - name: Permanently add Google Search Console verification tag
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -27,9 +27,22 @@ jobs:
           s = p.read_text(encoding='utf-8')
           tag = '<meta name="google-site-verification" content="4lEBaHBRBWyysYr6ENaCTOzju5tvnxXCwHHIyp91Og0">'
           if tag not in s:
+              if '</head>' not in s:
+                  raise SystemExit('Tidak menemukan </head> di index.html')
               s = s.replace('</head>', tag + '</head>', 1)
               p.write_text(s, encoding='utf-8')
           PY
+      - name: Commit verification tag to main
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "Verification tag already exists in index.html"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Add Google Search Console verification tag permanently"
+          git push origin HEAD:main
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
