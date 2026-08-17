@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rifqytofa.github.io/typing-speed-test-bahasa-Indonesia/sitemap.xml
